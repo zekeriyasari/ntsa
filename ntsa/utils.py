@@ -137,7 +137,7 @@ def nearest_neighbors(orbit, neigh=2, get_neighbors=False):
         return indexes
 
 
-def distance(x, y, order=2):
+def distance(x, y, order=2, axis=1):
     """
     Calculate the distance between each row of x and y matrices
     :param x: np.array,
@@ -147,11 +147,7 @@ def distance(x, y, order=2):
     :return: float,
         distance between x and y
     """
-    row_num = x.shape[0]
-    dist = np.zeros(row_num)
-    for i in range(row_num):
-        dist[i] = np.linalg.norm(x[i] - y[i], ord=order)
-    return dist
+    return np.linalg.norm(x - y, ord=order, axis=axis)
 
 
 def embedding_dimension(data, lag, dist_tol=15, max_dim=10, get_fnn=False):
