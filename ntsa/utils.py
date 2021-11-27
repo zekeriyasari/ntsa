@@ -110,13 +110,15 @@ def delay_embedding(data, dim, lag=1):
     return x
 
 
-def nearest_neighbors(orbit, neigh=2, get_neighbors=False):
+def nearest_neighbors(orbit, neigh=2, ign=0, get_neighbors=False):
     """
     Finds the nearest neighbors index for each row vector of data.
     :param orbit: np.ndarray,
         data matrix for which nearest neighbours are to be found for each row
     :param neigh: int,
         neighborhood distance
+    :param ign: int,
+        number of adjacent frames to be ignored 
     :param get_neighbors: bool,
         if true, return nearest neighbors as well as indexes.
     :return: np.ndarray,
@@ -127,7 +129,8 @@ def nearest_neighbors(orbit, neigh=2, get_neighbors=False):
     row_num = orbit.shape[0]
     indexes = np.zeros(row_num, dtype=int)
     for i in range(row_num):
-        index = tree.query(orbit[i], k=neigh)[1][1]
+        index = tree.query(orbit[i], k=neigh+ign)[1]
+        index = index[np.logical_or(index<i-ign, index>i+ign)][0]
         orbit_nn[i] = orbit[index]
         indexes[i] = index
 
@@ -192,7 +195,7 @@ def embedding_dimension(data, lag, dist_tol=15, max_dim=10, get_fnn=False):
     return embed_dim
 
 
-def lyapunov(data, ts, lag=None, dim=None, num_states=100, get_divergence=True):
+def lyapunov(data, ts, lag=None, dim=None, num_states=100, ign=0, get_divergence=True):
     """
     Estimate the Lyapunov exponent according to Rosenstein algorithm as follows:
     Given a time series x = [x_{0}, x_{1}, ..., x_{N - 1}],
@@ -218,6 +221,8 @@ def lyapunov(data, ts, lag=None, dim=None, num_states=100, get_divergence=True):
         embedding dimension for delay embedding.
     :param num_states: int,
         number of steps for which the the embedded orbit will advance in time.
+    :param ign: int,
+        number of adjacent frames to be ignored 
     :param get_divergence: bool,
         if True, average nearest neighbor divergence is returned.
     :return: float,
@@ -243,7 +248,7 @@ def lyapunov(data, ts, lag=None, dim=None, num_states=100, get_divergence=True):
     orbit_trunc = orbit[:num_steps]
 
     # Find nearest neighbors
-    nn_indices = nearest_neighbors(orbit_trunc)
+    nn_indices = nearest_neighbors(orbit_trunc, ign=ign)
 
     # Advance the embedded orbit in time and calculate the average divergence
     divergence = np.zeros((num_states, num_steps), dtype=float)
