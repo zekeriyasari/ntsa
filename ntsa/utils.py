@@ -195,7 +195,7 @@ def embedding_dimension(data, lag, dist_tol=15, max_dim=10, get_fnn=False):
     return embed_dim
 
 
-def lyapunov(data, ts, lag=None, dim=None, num_states=100, ign=0, get_divergence=True):
+def lyapunov(data, ts, lag=None, dim=None, num_states=100, ign=None, get_divergence=True):
     """
     Estimate the Lyapunov exponent according to Rosenstein algorithm as follows:
     Given a time series x = [x_{0}, x_{1}, ..., x_{N - 1}],
@@ -238,6 +238,8 @@ def lyapunov(data, ts, lag=None, dim=None, num_states=100, ign=0, get_divergence
         lag = optimum_delay(data)
     if dim is None:
         dim = embedding_dimension(data, lag)
+    if ign is None:
+        ign = 0.8 * lag
 
     # Construct the embedded orbit
     orbit = delay_embedding(data, dim, lag=lag)
